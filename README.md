@@ -19,3 +19,15 @@ cd CalibSNN
 
 # Install dependencies
 pip install -r requirements.txt
+``` 
+
+## Usage
+
+### 1. Preprocess Data
+
+The `data_process.py` and `kaggle_data_process.py` scripts handle data loading and preprocessing. Ensure your dataset is placed in the appropriate directory specified in `conf.py`.
+
+```bash
+python data_process.py
+``` 
+
