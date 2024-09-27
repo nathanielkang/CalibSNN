@@ -8,17 +8,6 @@
 - **Supports Multi-Modal Datasets**: Compatible with both tabular and image-based data.
 - **Visualization Tools**: Provides tools for visualizing model performance and training metrics.
 
-CalibSNN/
-├── main.py                  # Main script for training the model
-├── conf.py                  # Configuration file for hyperparameters and settings
-├── data_process.py          # Data preprocessing pipeline
-├── kaggle_data_process.py   # Kaggle-specific data processing
-├── cnn_test_model.py        # Model evaluation script
-├── visualize.py             # Visualization script for results
-├── requirements.txt         # Python dependencies
-├── README.md                # Project README file
-└── models/                  # Directory to save trained models
-
 
 
 ## Installation
@@ -42,5 +31,67 @@ The `data_process.py` and `kaggle_data_process.py` scripts handle data loading a
 
 ```bash
 python data_process.py
-``` 
+```
+
+### 2. Training the Model
+
+```bash
+python main.py
+```
+
+
+# Configuration
+
+The package comes with a `conf.py` file that allows users to modify various configurations for training and evaluation. Below are some of the key parameters you can adjust:
+
+## General Parameters
+dataset_used: Specifies the dataset (e.g., mnist, cifar10, cifar100, etc.).
+model_name: Defines the model architecture (e.g., mlp, cnn).
+classification_type: Defines the type of classification (binary or multi).
+
+## Loss Criteria
+train_loss_criterion: Defines the loss function for training.
+  1: BinaryCrossEntropy
+  2: CategoricalCrossEntropy
+  3: FedLCalibratedLoss
+  4: ContrastiveLoss
+
+## Contrastive Learning Settings
+train_contrastive_learning: Set to True to enable contrastive learning during training.
+eval_contrastive_learning: Set to True to enable contrastive learning during evaluation.
+
+## Federated Learning Parameters
+client_optimizer: Optimizer for client training (Adam or SGD).
+re_train_optimizer: Optimizer for retraining models (Adam or SGD).
+global_epochs: Number of global epochs for FL training.
+local_epochs: Number of local epochs per client.
+
+## Data Parameters
+data_type: Specifies the type of data (image, tabular).
+batch_size: Defines the batch size for training.
+beta: Specifies the value of the Dirichlet distribution for non-IID data.
+split_ratio: Ratio of validation data split for local clients.
+
+
+## Model Saving and Retraining
+model_dir: Directory where the model will be saved.
+model_file: Filename of the saved model.
+retrain_model_file: Filename for the retrained model.
+
+## Other Key Parameters
+lr: Learning rate for optimization.
+momentum: Momentum for the optimizer (if applicable).
+weight_decay: Weight decay for regularization.
+gamma: Hyperparameter controlling the distribution of synthetic data.
+
+
+
+
+
+
+
+
+
+
+
 
