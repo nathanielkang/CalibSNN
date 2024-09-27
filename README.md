@@ -57,32 +57,32 @@ classification_type: Defines the type of classification (binary or multi).
   4: ContrastiveLoss
 
 ## Contrastive Learning Settings
-- **train_contrastive_learning: Set to True to enable contrastive learning during training.
+- train_contrastive_learning: Set to True to enable contrastive learning during training.
 - **eval_contrastive_learning: Set to True to enable contrastive learning during evaluation.
 
 ## Federated Learning Parameters
-- **client_optimizer: Optimizer for client training (Adam or SGD).
-- **re_train_optimizer: Optimizer for retraining models (Adam or SGD).
-- **global_epochs: Number of global epochs for FL training.
-- **local_epochs: Number of local epochs per client.
+- client_optimizer: Optimizer for client training (Adam or SGD).
+- re_train_optimizer: Optimizer for retraining models (Adam or SGD).
+- global_epochs: Number of global epochs for FL training.
+- local_epochs: Number of local epochs per client.
 
 ## Data Parameters
-- **data_type: Specifies the type of data (image, tabular).
-- **batch_size: Defines the batch size for training.
-- **beta: Specifies the value of the Dirichlet distribution for non-IID data.
-- **split_ratio: Ratio of validation data split for local clients.
+- data_type: Specifies the type of data (image, tabular).
+- batch_size: Defines the batch size for training.
+- beta: Specifies the value of the Dirichlet distribution for non-IID data.
+- split_ratio: Ratio of validation data split for local clients.
 
 
 ## Model Saving and Retraining
-- **model_dir: Directory where the model will be saved.
-- **model_file: Filename of the saved model.
-- **retrain_model_file: Filename for the retrained model.
+- model_dir: Directory where the model will be saved.
+- model_file: Filename of the saved model.
+- retrain_model_file: Filename for the retrained model.
 
 ## Other Key Parameters
-- **lr: Learning rate for optimization.
-- **momentum: Momentum for the optimizer (if applicable).
-- **weight_decay: Weight decay for regularization.
-- **gamma: Hyperparameter controlling the distribution of synthetic data.
+- lr: Learning rate for optimization.
+- momentum: Momentum for the optimizer (if applicable).
+- weight_decay: Weight decay for regularization.
+- gamma: Hyperparameter controlling the distribution of synthetic data.
 
 
 
