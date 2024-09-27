@@ -58,7 +58,7 @@ classification_type: Defines the type of classification (binary or multi).
 
 ## Contrastive Learning Settings
 - train_contrastive_learning: Set to True to enable contrastive learning during training.
-- **eval_contrastive_learning: Set to True to enable contrastive learning during evaluation.
+- eval_contrastive_learning: Set to True to enable contrastive learning during evaluation.
 
 ## Federated Learning Parameters
 - client_optimizer: Optimizer for client training (Adam or SGD).
