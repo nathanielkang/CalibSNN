@@ -8,6 +8,19 @@
 - **Supports Multi-Modal Datasets**: Compatible with both tabular and image-based data.
 - **Visualization Tools**: Provides tools for visualizing model performance and training metrics.
 
+CalibSNN/
+├── main.py                  # Main script for training the model
+├── conf.py                  # Configuration file for hyperparameters and settings
+├── data_process.py          # Data preprocessing pipeline
+├── kaggle_data_process.py   # Kaggle-specific data processing
+├── cnn_test_model.py        # Model evaluation script
+├── visualize.py             # Visualization script for results
+├── requirements.txt         # Python dependencies
+├── README.md                # Project README file
+└── models/                  # Directory to save trained models
+
+
+
 ## Installation
 
 To set up the environment and install the required dependencies, follow these steps:
