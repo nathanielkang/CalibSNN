@@ -50,7 +50,7 @@ model_name: Defines the model architecture (e.g., mlp, cnn).
 classification_type: Defines the type of classification (binary or multi).
 
 ## Loss Criteria
-- **train_loss_criterion: Defines the loss function for training.
+- train_loss_criterion: Defines the loss function for training.
   1: BinaryCrossEntropy
   2: CategoricalCrossEntropy
   3: FedLCalibratedLoss
