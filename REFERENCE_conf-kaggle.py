@@ -35,10 +35,10 @@ conf = {
 		"kaggle_dataset_download": "wenruliu/adult-income-dataset",
 
 		# replace kaggle_username with your username
-		"kaggle_username":"bilalahmadai",
+		"kaggle_username":"",
 
 		#replace kaggle_api_key with your token api key
-		"kaggle_api_key":"d0467d263f404eac2e2752895eef4b07",
+		"kaggle_api_key":"",
 	},
 
 	#Data processing method: fed_ccvr
