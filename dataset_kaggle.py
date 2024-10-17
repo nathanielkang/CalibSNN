@@ -4,8 +4,8 @@ import subprocess
 # os.environ['KAGGLE_CONFIG_DIR'] = "./kaggle_token"
 # Set Kaggle username and key
 
-os.environ['KAGGLE_USERNAME'] = "bilalahmadai"  
-os.environ['KAGGLE_KEY'] = "d0467d263f404eac2e2752895eef4b07" 
+os.environ['KAGGLE_USERNAME'] = ""  
+os.environ['KAGGLE_KEY'] = "" 
 # Specify the dataset name 
 dataset_name = "wenruliu/adult-income-dataset"
 
