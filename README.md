@@ -15,10 +15,6 @@
 To set up the environment and install the required dependencies, follow these steps:
 
 ```bash
-# Clone the repository
-git clone https://github.com/nathanielkang/CalibSNN.git
-cd CalibSNN
-
 # Install dependencies
 pip install -r requirements.txt
 ``` 
