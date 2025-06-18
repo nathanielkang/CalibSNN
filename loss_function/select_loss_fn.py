@@ -1,8 +1,11 @@
 import torch
-from .calibrated_loss import FedLCalibratedLoss, FedLCalibratedContrastiveLoss
+from .snn_loss import SNNLoss, CalibSNNLoss
 from conf import conf
-flcl = FedLCalibratedLoss()
-flcl_contrastive = FedLCalibratedContrastiveLoss()
+
+# Initialize loss functions
+snn_loss = SNNLoss()
+calibsnn_loss = CalibSNNLoss()
+
 def selected_loss_function(loss):
     """
     Selects the appropriate loss function based on the configuration.
@@ -18,9 +21,11 @@ def selected_loss_function(loss):
         elif loss == 2:
             criterion = torch.nn.CrossEntropyLoss()
         elif loss == 3:
-            criterion = flcl.logit_calibrated_loss
+            # SNN loss only (for feature learning)
+            criterion = snn_loss
         elif loss == 4:
-            criterion = flcl_contrastive.combined_loss
+            # Combined CalibSNN loss (CE + SNN)
+            criterion = calibsnn_loss
         else:
             raise ValueError(f"Unsupported loss criterion: {loss}")
     except KeyError:

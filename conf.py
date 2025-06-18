@@ -5,8 +5,8 @@ navigate to the API section, and create a new token. Download the generated
 in the script with your Kaggle username and API key, respectively.
 """
 
-# note: run cross entropy: (1) 'retrain_loss_criterion':1, (2) "train_load_data":False, (3) "train_contrastive_learning":False, (4)"train_loss_criterion": 2
-# note: snn: (1) 'retrain_loss_criterion':2, (2) "train_load_data":True, (3) "train_contrastive_learning":True, (4)"train_loss_criterion": 4
+# note: run cross entropy: (1) 'retrain_loss_criterion':2, (2) "train_load_data":False, (3) "train_contrastive_learning":False, (4)"train_loss_criterion": 2
+# note: CalibSNN: (1) 'retrain_loss_criterion':4, (2) "train_load_data":False, (3) "train_contrastive_learning":False, (4)"train_loss_criterion": 4
 
 
 ##Configuration
@@ -15,25 +15,25 @@ conf = {
 	
 	# 1: BinaryCrossEntropy
 	# 2: CategoricalCrossEntropy,
-	# 3: FedLCalibratedLoss
-	# 4: ContrastiveLoss
+	# 3: SNN Loss only
+	# 4: CalibSNN Loss (CE + SNN)
 
-	'retrain_loss_criterion': 3,
+	'retrain_loss_criterion': 4,
  
 	# Run for Client 
-	"train_load_data":True, # Training Dataset loaded in Pairs, contrastive learning = True
-	"train_contrastive_learning":True, # Implement Contrastive loss
-	"train_loss_criterion": 4,  #3: FedLCalibratedLoss, 4: ContrastiveLoss
+	"train_load_data":False, # Training Dataset loaded in Pairs for old contrastive learning
+	"train_contrastive_learning":False, # Use old contrastive loss (deprecated)
+	"train_loss_criterion": 4,  # 4: CalibSNN Loss
 
 	## Data Load and implement Loss 
-	"eval_load_data":True, # Training Dataset loaded in Pairs, contrastive learning = True
-	"eval_contrastive_learning":True,
-	"eval_loss_criterion": 4,  #3: FedLCalibratedLoss, 4: ContrastiveLoss
+	"eval_load_data":False, # Evaluation Dataset loaded in Pairs
+	"eval_contrastive_learning":False,
+	"eval_loss_criterion": 4,  # 4: CalibSNN Loss
 
 	# Run for Server
 	"test_load_data":False, # Load Test dataset in pairs # to run `visualize.py` put it False
 	"test_contrastive_learning":False, # Implement Contrastive Loss
-	"test_loss_criterion": 3, #3: FedLCalibratedLoss, 4: ContrastiveLoss
+	"test_loss_criterion": 2, # Use CE for testing
 
 	#Type of data，tabular, image
 	"data_type" : "image",
@@ -47,8 +47,19 @@ conf = {
 	# if using binary class True, else for multi class False
 	# "loss_criterion_binary": True, # True, False
 	
-	# it is a hyperparameter for contrastive learning
-	'--tau':4.75,
+	# Temperature parameter for SNN loss (increased for stability)
+	'--tau': 2.5,
+	
+	# Weight for SNN loss component in CalibSNN (reduced for stability)
+	'lambda_snn': 0.5,
+	
+	# CalibSNN specific parameters
+	'calibsnn': {
+		'enable_calibration': True,  # Enable feature calibration
+		'enable_resampling': True,   # Enable re-sampling during training
+		'resample_ratio': 0.2,       # Ratio of synthetic samples to add
+		'update_global_every': 5,    # Update global statistics every N rounds
+	},
 	
 	#Classes
 	"num_classes": 10, #binary = 2, #multi_class = 10, # cifar100 = 100
@@ -64,14 +75,14 @@ conf = {
 		"kaggle_dataset_download": "wenruliu/adult-income-dataset",
 
 		# replace kaggle_username with your username
-		"kaggle_username":"",
+		"kaggle_username":"bilalahmadai",
 
 		#replace kaggle_api_key with your token api key
-		"kaggle_api_key":"",
+		"kaggle_api_key":"d0467d263f404eac2e2752895eef4b07",
 	},
 
-	#Data processing method: fed_ccvr
-	"no-iid": "fl-fcr",
+	#Data processing method: CalibSNN
+	"no-iid": "calibsnn",
 
 	# client_optimizer used
     "client_optimizer": "SGD", #Adam, SGD 
@@ -115,10 +126,10 @@ conf = {
 	"data_column": "file",
 
     # Test dataset , 
-	"test_dataset": "./data/dataset/test/test.csv",
+	"test_dataset": "../data/dataset/test/test.csv",
 
     #Train dataset
-	"train_dataset" : "./data/dataset/train/train.csv", 
+	"train_dataset" : "../data/dataset/train/train.csv", 
 
     #Where to save the model:
 	"model_dir":"./save_model/",
@@ -150,3 +161,86 @@ conf = {
 	
 }
 
+# Dataset configurations
+dataset_configs = {
+    "mnist": {
+        "data_type": "image",
+        "num_classes": 10,
+        "data_path": "../data/dataset/mnist",
+        "train_path": "../data/dataset/mnist/train",
+        "test_path": "../data/dataset/mnist/test"
+    },
+    "cifar10": {
+        "data_type": "image", 
+        "num_classes": 10,
+        "data_path": "../data/dataset/cifar10",
+        "train_path": "../data/dataset/cifar10/train",
+        "test_path": "../data/dataset/cifar10/test"
+    },
+    "usps": {
+        "data_type": "image",
+        "num_classes": 10,
+        "data_path": "../data/dataset/usps",
+        "train_path": "../data/dataset/usps/train",
+        "test_path": "../data/dataset/usps/test"
+    },
+    "svhn": {
+        "data_type": "image",
+        "num_classes": 10,
+        "data_path": "../data/dataset/svhn",
+        "train_path": "../data/dataset/svhn/train",
+        "test_path": "../data/dataset/svhn/test"
+    },
+    "kddcup99": {
+        "data_type": "tabular",
+        "num_classes": 2,
+        "data_path": "../data/dataset/kddcup99",
+        "train_path": "../data/dataset/kddcup99/train",
+        "test_path": "../data/dataset/kddcup99/test"
+    },
+    "ag_news": {
+        "data_type": "text",
+        "num_classes": 4,
+        "data_path": "../data/dataset/ag_news",
+        "train_path": "../data/dataset/ag_news/train",
+        "test_path": "../data/dataset/ag_news/test",
+        "vocab_path": "../data/dataset/ag_news/vocab.txt"
+    },
+    "adult": {
+        "data_type": "tabular",
+        "num_classes": 2,
+        "num_features": 14,  # Adult dataset has 14 features
+        "data_path": "../data/dataset/adult",
+        "train_path": "../data/dataset/adult/train",
+        "test_path": "../data/dataset/adult/test"
+    },
+    "covertype": {
+        "data_type": "tabular",
+        "num_classes": 7,  # CoverType has 7 forest cover types
+        "num_features": 54,  # CoverType has 54 features
+        "data_path": "../data/dataset/covertype",
+        "train_path": "../data/dataset/covertype/train",
+        "test_path": "../data/dataset/covertype/test"
+    }
+}
+
+# Update conf with dataset-specific settings when needed
+def update_conf_for_dataset(dataset_name):
+    """Update conf with dataset-specific settings."""
+    if dataset_name in dataset_configs:
+        config = dataset_configs[dataset_name]
+        conf["data_type"] = config["data_type"]
+        conf["num_classes"] = config["num_classes"]
+        conf["data_path"] = config["data_path"]
+        conf["train_path"] = config["train_path"]
+        conf["test_path"] = config["test_path"]
+        
+        # Update train and test dataset paths
+        conf["train_dataset"] = f"{config['train_path']}/train.csv"
+        conf["test_dataset"] = f"{config['test_path']}/test.csv"
+        
+        if "vocab_path" in config:
+            conf["vocab_path"] = config["vocab_path"]
+            
+        if "num_features" in config:
+            conf["num_features"] = config["num_features"]

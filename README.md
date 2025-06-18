@@ -1,93 +1,186 @@
-# CalibSNN: Re-sampling Calibrated SNN Loss for Non-IID Data in Federated Learning
+# CalibSNN - Minimal Implementation
 
-**CalibSNN** is a robust approach designed to handle the challenges posed by non-IID data distributions in Federated Learning. By integrating re-sampling techniques with the Soft Nearest Neighbor (SNN) loss, the model improves calibration, reduces data bias, and enhances feature representation in federated learning environments.
+This is a minimal implementation of **CalibSNN** (Calibrated Soft Nearest Neighbor Loss) for Federated Learning with non-IID data, as described in the paper "Re-sampling Calibrated SNN Loss: A Robust Approach to Non-IID Data in Federated Learning".
 
-## Features
-- **Addresses Data Imbalance and Non-IID Distributions**: Enhances federated learning models by mitigating data heterogeneity across clients.
-- **Implements SNN Loss**: Utilizes Soft Nearest Neighbor loss for better model calibration and robustness.
-- **Supports Multi-Modal Datasets**: Compatible with both tabular and image-based data.
-- **Visualization Tools**: Provides tools for visualizing model performance and training metrics.
+## 🚀 Quick Start
 
+### Prerequisites
 
-
-## Installation
-
-To set up the environment and install the required dependencies, follow these steps:
-
+Install required dependencies:
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-``` 
-
-## Usage
-
-### 1. Preprocess Data
-
-The `data_process.py` and `kaggle_data_process.py` scripts handle data loading and preprocessing. Ensure your dataset is placed in the appropriate directory specified in `conf.py`.
-
-```bash
-python data_process.py
+pip install torch torchvision pandas numpy scikit-learn
 ```
 
-### 2. Training the Model
+### Essential Files Structure
 
+```
+CalibSNN/
+├── main.py                      # Main federated learning runner
+├── conf.py                      # Configuration and hyperparameters
+├── run_CalibSNN.py             # Experiment runner script
+├── requirements.txt             # Dependencies
+├── utils.py                     # Utility functions
+├── data_process.py              # Data processing utilities
+├── prepare_data.py              # Data preparation
+│
+├── loss_function/               # Core CalibSNN components
+│   ├── snn_loss.py             # SNN loss implementation
+│   ├── calibration.py          # Feature calibration
+│   ├── calibrated_loss.py      # Combined loss wrapper
+│   └── select_loss_fn.py       # Loss function selector
+│
+└── fedavg/                     # Federated learning framework
+    ├── client_calibsnn.py      # CalibSNN client
+    ├── server.py               # FL server
+    ├── models.py               # Neural network models
+    └── datasets.py             # Dataset handling
+```
+
+## 📋 How to Run Experiments
+
+### Option 1: Simple Run (using main.py)
 ```bash
 python main.py
 ```
 
+### Option 2: Experimental Run (using run_CalibSNN.py)
+```bash
+# Run on all datasets with default parameters
+python run_CalibSNN.py
 
-# Configuration
+# Run on specific datasets
+python run_CalibSNN.py --datasets mnist cifar10
 
-The package comes with a `conf.py` file that allows users to modify various configurations for training and evaluation. Below are some of the key parameters you can adjust:
+# Run with custom parameters
+python run_CalibSNN.py \
+    --datasets mnist \
+    --betas 0.05 0.1 0.3 \
+    --num_clients 20 \
+    --num_rounds 50 \
+    --tau 2.5 \
+    --lambda_snn 0.5
+```
 
-## General Parameters
-dataset_used: Specifies the dataset (e.g., mnist, cifar10, cifar100, etc.).
-model_name: Defines the model architecture (e.g., mlp, cnn).
-classification_type: Defines the type of classification (binary or multi).
+### Option 3: Quick Test Mode
+```bash
+python run_CalibSNN.py --test_mode
+```
 
-## Loss Criteria
-- train_loss_criterion: Defines the loss function for training.
-  1: BinaryCrossEntropy
-  2: CategoricalCrossEntropy
-  3: FedLCalibratedLoss
-  4: ContrastiveLoss
+## ⚙️ Key Configuration Parameters
 
-## Contrastive Learning Settings
-- train_contrastive_learning: Set to True to enable contrastive learning during training.
-- eval_contrastive_learning: Set to True to enable contrastive learning during evaluation.
+Edit `conf.py` to customize:
 
-## Federated Learning Parameters
-- client_optimizer: Optimizer for client training (Adam or SGD).
-- re_train_optimizer: Optimizer for retraining models (Adam or SGD).
-- global_epochs: Number of global epochs for FL training.
-- local_epochs: Number of local epochs per client.
+### CalibSNN Specific
+- `'--tau': 2.5` - Temperature parameter for SNN loss
+- `'lambda_snn': 0.5` - Weight for SNN loss component
+- `'calibsnn.enable_calibration': True` - Enable feature calibration
+- `'calibsnn.enable_resampling': True` - Enable re-sampling
+- `'calibsnn.resample_ratio': 0.2` - Ratio of synthetic samples
 
-## Data Parameters
-- data_type: Specifies the type of data (image, tabular).
-- batch_size: Defines the batch size for training.
-- beta: Specifies the value of the Dirichlet distribution for non-IID data.
-- split_ratio: Ratio of validation data split for local clients.
+### Federated Learning
+- `'num_parties': 20` - Number of clients
+- `'global_epochs': 50` - Communication rounds
+- `'local_epochs': 10` - Local training epochs
+- `'beta': 0.05` - Non-IID level (lower = more heterogeneous)
 
+### Dataset & Model
+- `'dataset_used': "cifar10"` - Dataset (mnist, cifar10, usps)
+- `'model_name': "cnn"` - Model architecture
+- `'batch_size': 1024` - Batch size
+- `'lr': 0.01` - Learning rate
 
-## Model Saving and Retraining
-- model_dir: Directory where the model will be saved.
-- model_file: Filename of the saved model.
-- retrain_model_file: Filename for the retrained model.
+## 📊 Supported Datasets
 
-## Other Key Parameters
-- lr: Learning rate for optimization.
-- momentum: Momentum for the optimizer (if applicable).
-- weight_decay: Weight decay for regularization.
-- gamma: Hyperparameter controlling the distribution of synthetic data.
+Prepare datasets using:
+```bash
+# Prepare specific dataset
+python prepare_data.py --datasets mnist
 
+# Prepare multiple datasets  
+python prepare_data.py --datasets mnist cifar10 usps
+```
 
+Supported datasets:
+- **MNIST**: Handwritten digits (28x28 grayscale)
+- **CIFAR-10**: Natural images (32x32 color)
+- **USPS**: Postal handwritten digits (16x16 grayscale)
 
+## 🔧 Core CalibSNN Components
 
+### 1. SNN Loss (`loss_function/snn_loss.py`)
+Implements the Soft Nearest Neighbor loss:
+- Encourages intra-class compactness
+- Promotes inter-class separation
+- Temperature parameter τ controls concentration
 
+### 2. Feature Calibration (`loss_function/calibration.py`)
+Handles distribution alignment:
+- Computes local mean μ_{k,c} and covariance Σ_{k,c}
+- Aggregates global statistics μ_c and Σ_c
+- Calibrates features to match global distribution
 
+### 3. CalibSNN Client (`fedavg/client_calibsnn.py`)
+Integrates calibration with local training:
+- Computes local statistics
+- Applies feature calibration
+- Trains with combined CE + SNN loss
 
+## 📈 Output Structure
 
+Results are saved in:
+```
+experiments/
+└── CalibSNN_[dataset]_beta[value]_C[clients]_R[rounds]_[timestamp]/
+    ├── config.json              # Experiment configuration
+    ├── round_metrics.csv        # Per-round metrics
+    └── final_model.pth          # Trained model
+```
 
+## 🔍 Key Differences from Standard FL
 
+| Aspect | Standard FL | CalibSNN |
+|--------|-------------|----------|
+| Loss Function | Cross-entropy only | CE + SNN loss |
+| Data Handling | Raw local data | Calibrated features |
+| Aggregation | Model parameters only | Parameters + statistics |
+| Non-IID Handling | Limited | Feature-level calibration |
 
+## 🎯 Expected Results
 
+CalibSNN typically achieves:
+- **Better accuracy** under non-IID conditions
+- **Faster convergence** (2-4x speedup)
+- **More robust features** across heterogeneous clients
+- **Improved performance** especially at low β values (high heterogeneity)
+
+## 📝 Citation
+
+If you use this code, please cite:
+```bibtex
+@article{calibsnn2024,
+  title={Re-sampling Calibrated SNN Loss: A Robust Approach to Non-IID Data in Federated Learning},
+  author={Kang, Nathaniel and Im, Jongho},
+  year={2024}
+}
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+1. **Numerical Instability**: Increase `tau` parameter (e.g., 3.0)
+2. **Out of Memory**: Reduce `batch_size` or `num_clients`
+3. **Slow Training**: Reduce `local_epochs` or disable resampling
+4. **NaN Values**: Decrease `lambda_snn` (e.g., 0.1)
+
+### Quick Fixes
+```bash
+# Conservative parameters for stability
+python run_CalibSNN.py --tau 3.0 --lambda_snn 0.1 --learning_rate 0.005
+
+# CPU-only mode
+python run_CalibSNN.py --gpu_id -1
+
+# Quick test
+python run_CalibSNN.py --test_mode --num_rounds 10
+``` 

@@ -333,13 +333,71 @@ class ReTrainModel(nn.Module):
 def weights_init_normal(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
-        torch.nn.init.normal(m.weight, 0.0, 0.02)
+        # Use Kaiming initialization for Conv layers (better for ReLU)
+        torch.nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+        if m.bias is not None:
+            torch.nn.init.constant_(m.bias, 0.0)
     elif classname.find('BatchNorm') != -1:
-        torch.nn.init.normal(m.weight, 1.0, 0.02)
-        torch.nn.init.constant(m.bias, 0.0)
+        torch.nn.init.normal_(m.weight, 1.0, 0.02)
+        torch.nn.init.constant_(m.bias, 0.0)
     elif classname.find('Linear') != -1:
-        torch.nn.init.normal(m.weight, 0.0, 0.01)
-        torch.nn.init.constant(m.bias, 0.0)
+        # Use Xavier initialization for Linear layers
+        torch.nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.constant_(m.bias, 0.0)
+    elif classname.find('Embedding') != -1:
+        # Initialize embedding layer with uniform distribution
+        # This is important for text models to avoid stuck gradients
+        torch.nn.init.uniform_(m.weight, -0.1, 0.1)
+
+class TextCNN(nn.Module):
+    """
+    TextCNN model for text classification.
+    Based on "Convolutional Neural Networks for Sentence Classification" by Yoon Kim.
+    """
+    def __init__(self, vocab_size, embedding_dim, num_classes, num_filters=100, 
+                 filter_sizes=[3, 4, 5], dropout=0.5):
+        super(TextCNN, self).__init__()
+        
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.convs = nn.ModuleList([
+            nn.Conv2d(1, num_filters, (fs, embedding_dim))
+            for fs in filter_sizes
+        ])
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(len(filter_sizes) * num_filters, num_classes)
+        
+        # Feature dimension for CalibSNN
+        self.feature_dim = len(filter_sizes) * num_filters
+        
+    def forward(self, x):
+        """
+        Args:
+            x: Input tensor of shape (batch_size, sequence_length)
+        Returns:
+            embeddings: Feature embeddings
+            logits: Classification logits
+        """
+        # x shape: (batch_size, sequence_length)
+        x = self.embedding(x)  # (batch_size, sequence_length, embedding_dim)
+        x = x.unsqueeze(1)  # (batch_size, 1, sequence_length, embedding_dim)
+        
+        # Apply convolutions
+        conv_outputs = []
+        for conv in self.convs:
+            conv_out = F.relu(conv(x))  # (batch_size, num_filters, conv_height, 1)
+            pooled = F.max_pool2d(conv_out, (conv_out.size(2), 1))  # (batch_size, num_filters, 1, 1)
+            pooled = pooled.squeeze(3).squeeze(2)  # (batch_size, num_filters)
+            conv_outputs.append(pooled)
+        
+        # Concatenate all conv outputs
+        embeddings = torch.cat(conv_outputs, dim=1)  # (batch_size, len(filter_sizes) * num_filters)
+        embeddings = self.dropout(embeddings)
+        
+        # Classification layer
+        logits = self.fc(embeddings)
+        
+        return embeddings, logits
 
 
 

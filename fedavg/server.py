@@ -23,6 +23,9 @@ class Server(object):
     def model_aggregate(self, clients_model, weights):
 
         new_model = {}
+        
+        # Get the device of the global model
+        global_device = next(self.global_model.parameters()).device
 
         for name, params in self.global_model.state_dict().items():
             new_model[name] = torch.zeros_like(params)
@@ -30,8 +33,9 @@ class Server(object):
         for key in clients_model.keys():
 
             for name, param in clients_model[key].items():
-                new_model[name] = new_model[name] + \
-                    clients_model[key][name] * weights[key]
+                # Ensure client model parameters are on the same device as global model
+                client_param = clients_model[key][name].to(global_device)
+                new_model[name] = new_model[name] + client_param * weights[key]
 
         self.global_model.load_state_dict(new_model)
 
@@ -85,44 +89,35 @@ class Server(object):
 
                 if torch.cuda.is_available():
                     data = data.cuda()
-                    target = target.cuda() #for tabular it gives [64,]
+                    target = target.cuda()
                 
-                
-                
-                # if dataset is tabular then convert the target to 2d array [64,1]
-                if self.conf['data_type'] == 'tabular':
-                    target = target.float().view(-1, 1)
-
-
                 _, output = self.global_model(data)
-                # print("output gloabl",output)
 
-                total_test_loss += criterion(output, target)  # sum up batch loss
-                # get the index of the max log-probability
-                # pred = output.data.max(1)[1]
-                # print("torch.sigmoid(output)",torch.sigmoid(output))
-                ## pred = (torch.sigmoid(output) > 0.5).float()
-                # print("pred gloabl",pred)
-                if self.conf['classification_type']=="multi":
+                total_test_loss += criterion(output, target).item()  # sum up batch loss
+                
+                # For CrossEntropyLoss, both binary and multi-class use argmax
+                # Binary classification with CE loss has 2 output classes
+                if self.conf['test_loss_criterion'] == 2:  # CrossEntropyLoss
                     pred = output.data.max(1)[1]
-                elif self.conf['classification_type']=="binary":
-                    pred = (torch.sigmoid(output) > 0.5).float()
                 else:
-                    raise ValueError("Please check type of classication! (binary or multi)")
+                    # For other loss functions, use the original logic
+                    if self.conf['classification_type']=="multi":
+                        pred = output.data.max(1)[1]
+                    elif self.conf['classification_type']=="binary":
+                        pred = (torch.sigmoid(output) > 0.5).float()
+                    else:
+                        raise ValueError("Please check type of classification! (binary or multi)")
 
-                # predict_prob.extend(output.data[:, 1].tolist())
                 labels.extend(target.data.cpu().tolist())
                 total_correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
                 total_samples += data.size()[0]
-                # print("target.data.view_as(pred)",target.data.view_as(pred))
-                # print("pred.eq(target.data.view_as(pred)).cpu().sum().item()",pred.eq(target.data.view_as(pred)).cpu().sum().item())
         
         if self.conf['test_contrastive_learning']:
             accuracy = 100.0 * total_correct / total_samples
             avg_test_loss = total_test_loss / len(self.test_loader)  
         else:
             accuracy = 100.0 * (float(total_correct) / float(total_samples))
-            avg_test_loss = total_test_loss.cpu().detach().numpy() / total_samples
+            avg_test_loss = total_test_loss / total_samples
             # print("roc_auc = {}".format(roc_auc_score(labels,predict_prob)))
 
         return accuracy, avg_test_loss
