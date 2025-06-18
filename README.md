@@ -1,4 +1,4 @@
-# CalibSNN - Minimal Implementation
+# CalibSNN - Implementation
 
 This is a minimal implementation of **CalibSNN** (Calibrated Soft Nearest Neighbor Loss) for Federated Learning with non-IID data, as described in the paper "Re-sampling Calibrated SNN Loss: A Robust Approach to Non-IID Data in Federated Learning".
 
